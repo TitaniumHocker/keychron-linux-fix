@@ -1,0 +1,55 @@
+#!/usr/bin/env sh
+# Simple script for fixing functional
+# keys on Keychron keyboards in linux
+
+set -e
+
+DAEMONIZE=0
+
+help() {
+    cat << EOF
+usage: $0 [-h|--help] [-d|--daemonize]
+
+Simple script for fixing functional
+keys on Keychron keyboards in linux
+
+Flags:
+    -h|--help       Show this message and exit
+    -d|--daemonize  Start as polling daemon
+
+EOF
+    exit 0
+}
+
+main() {
+    local HAS_KEYCHRON="$(hwinfo --keyboard | grep -Pi 'Model: "Keychron( .+)?"')"
+    local FNMODE=$(cat /sys/module/hid_apple/parameters/fnmode)
+    if [ ! -z "$HAS_KEYCHRON" ] && [ ! $FNMODE -eq 2 ]; then
+        echo 2 > /sys/module/hid_apple/parameters/fnmode
+    elif [ -z "$HAS_KEYCHRON" ] && [ $FNMODE -eq 2 ]; then
+        echo 1 > /sys/module/hid_apple/parameters/fnmode
+    fi
+}
+
+for FLAG in $@; do
+    case $FLAG in
+        --help)
+            help;;
+        -h)
+            help;;
+        --daemonize)
+            DAEMONIZE=1;;
+        -d)
+            DAEMONIZE=1;;
+    esac
+done
+
+if [ $DAEMONIZE -eq 1 ]; then
+    while :
+    do
+        main
+        sleep 2
+    done
+else
+    main
+fi

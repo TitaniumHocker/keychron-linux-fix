@@ -1,0 +1,10 @@
+[Unit]
+Description=Daemon for fixing functional keys on Keychron keyboards
+
+[Service]
+User=root
+ExecStart=/usr/local/bin/keychron-fnfix --daemonize
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
